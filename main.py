@@ -1,4 +1,5 @@
 import numpy as np
+import joblib
 
 class Layer:
     def __init__(self , input_shape , output_shape):
@@ -86,9 +87,15 @@ class NeuralNetwork:
 
             average_loss = total_loss / len(X_train)
             total_average_loss = np.mean(average_loss)
-            print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_average_loss} , Validation Accuracy: {np.mean(outputs == y_train)}"  )
+            print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_average_loss} , Accuracy: {np.mean(outputs == y_train)}"  )
 
+    def save(self,filename):
+        joblib.dump(self, filename)
 
+    @staticmethod
+    def load(filename):
+        model = joblib.load(filename)
+        return model
 
 class ActivationFunctions:
     @staticmethod
@@ -139,7 +146,6 @@ class ActivationFunctions:
         d_loss = - (y_true / y_predict - (1 - y_true) / (1 - y_predict))
         return d_loss
 
-
 if __name__ == "__main__":
     # Dữ liệu đào tạo giả định
     X_train = np.array([[[0, 0 , 0]], [[0, 1 , 0]], [[1, 0 , 0]], [[1, 1 , 0]]])
@@ -159,6 +165,8 @@ if __name__ == "__main__":
 
     out = nn.predict([[0,1,0]])
     print(out)
+
+
 
 
 
