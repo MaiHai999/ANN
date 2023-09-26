@@ -21,7 +21,6 @@ class Layer:
 
         return layer_error
 
-
 class ActiveLayer:
     def __init__(self ,input_shape , output_shape , activation , activation_prime):
         self.input_shape = input_shape
@@ -36,7 +35,6 @@ class ActiveLayer:
 
     def backward(self, output_err , learning_rate):
         return self.activation_prime(self.input) * output_err
-
 
 class NeuralNetwork:
     def __init__(self):
@@ -66,12 +64,16 @@ class NeuralNetwork:
     def train(self , X_train, y_train, learning_rate, epochs):
         for epoch in range(epochs):
             total_loss = 0
+            outputs = []
             for i in range(len(X_train)):
 
                 #lan truyền tiến
                 output = X_train[i]
                 for layer in self.layers:
                     output = layer.forward(output)
+                lable_array = np.zeros_like(output)
+                lable_array[0,np.argmax(output)] = 1
+                outputs.append(lable_array)
 
                 #tính hàm mất mát của model
                 loss = self.loss(y_train[i] , output)
@@ -83,7 +85,10 @@ class NeuralNetwork:
                     error = layer.backward(error , learning_rate)
 
             average_loss = total_loss / len(X_train)
-            print(f"Epoch {epoch + 1}/{epochs}, Loss: {average_loss}")
+            total_average_loss = np.mean(average_loss)
+            print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_average_loss} , Validation Accuracy: {np.mean(outputs == y_train)}"  )
+
+
 
 class ActivationFunctions:
     @staticmethod
@@ -137,20 +142,22 @@ class ActivationFunctions:
 
 if __name__ == "__main__":
     # Dữ liệu đào tạo giả định
-    X_train = np.array([[[0, 0]], [[0, 1]], [[1, 0]], [[1, 1]]])
-    y_train = np.array([[[0]], [[1]], [[1]], [[0]]])
+    X_train = np.array([[[0, 0 , 0]], [[0, 1 , 0]], [[1, 0 , 0]], [[1, 1 , 0]]])
+    y_train = np.array([[[1 , 0]], [[1,0]], [[0,1]], [[0,1]]])
 
     nn = NeuralNetwork()
-    nn.add_layer(Layer((1,2) , (1,3)))
+    nn.add_layer(Layer((1,3) , (1,4)))
+    nn.add_layer(ActiveLayer((1,4),(1,4) , ActivationFunctions.sigmoid , ActivationFunctions.sigmoid_prime))
+    nn.add_layer(Layer((1,4) , (1,3)))
     nn.add_layer(ActiveLayer((1,3),(1,3) , ActivationFunctions.sigmoid , ActivationFunctions.sigmoid_prime))
-    nn.add_layer(Layer((1,3) , (1,1)))
-    nn.add_layer(ActiveLayer((1,1),(1,1) , ActivationFunctions.sigmoid , ActivationFunctions.sigmoid_prime))
+    nn.add_layer(Layer((1, 3), (1, 2)))
+    nn.add_layer(ActiveLayer((1, 2), (1, 2), ActivationFunctions.sigmoid, ActivationFunctions.sigmoid_prime))
 
     nn.set_loss_function(ActivationFunctions.cross_entropy_loss , ActivationFunctions.cross_entropy_loss_prime)
 
     nn.train(X_train , y_train , 0.01 , 1000)
 
-    out = nn.predict([[0,1]])
+    out = nn.predict([[0,1,0]])
     print(out)
 
 
